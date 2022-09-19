@@ -31,7 +31,7 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
     for epoch in range(epochs):
         print()
         print("-" * 35)
-        print(colored(f"Epoch {epoch + a}", "yellow"))
+        print(colored(f"Epoch {epoch + 1}", "yellow"))
         total_loss, batch_loss, batch_count = 0, 0, 0
         model.train()
 
