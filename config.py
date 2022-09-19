@@ -1,0 +1,11 @@
+CHECKPOINT = "vinai/phobert-base"
+DATA_PATH = "uit-nlp/vietnamese_students_feedback"
+
+WARM_UP_EPOCH = 1
+EPOCH = 1
+LOG_INTERVAL= 20
+NUM_CLASSES = 3
+BATCH_SIZE = 8
+MID_HIDDEN_LAYER = 384
+
+EVALUATE_WHILE_TRAINING = False
