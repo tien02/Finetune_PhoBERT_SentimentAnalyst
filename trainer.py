@@ -29,7 +29,9 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
     '''
     print(colored("Start Training...", "blue"))
     for epoch in range(epochs):
-        print(colored(f"Epoch {epoch}", "yellow"))
+        print()
+        print("-" * 35)
+        print(colored(f"Epoch {epoch + a}", "yellow"))
         total_loss, batch_loss, batch_count = 0, 0, 0
         model.train()
 
@@ -56,14 +58,15 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
             scheduler.step()
 
             if idx % log_interval == 0:
-                print(f"Batch [{idx}|{len(train_dataloader)}]: Loss {batch_loss / batch_count:.3f}")
+                print(f"\t[{idx}|{len(train_dataloader)}]: Loss {batch_loss / batch_count:.3f}")
                 batch_loss, batch_count = 0, 0
         
         avg_loss = total_loss / len(train_dataloader)
-        print(colored(f"Total loss is: {avg_loss:.3f}", "green"))
+        print(colored(f"Total loss: {avg_loss:.3f}", "green"))
         if evaluation:
             val_loss, val_acc = evaluate(model, val_dataloader, loss_fn, device)
-            print(f"Val Loss: {val_loss:.2f} - Val Acc: {val_acc:.2f}")
+            print(colored(f"Val Loss: {val_loss:.3f} | Val Acc: {val_acc:.3f}", "green"))
+            print("-" * 35)
     save_info = {
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
