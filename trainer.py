@@ -66,6 +66,7 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
     }    
+    torch.save(save_info, f"checkpoint_one.pt")
     print(colored("Training Completed!", "blue"))
 
 def evaluate(model, val_dataloader, loss_fn, device):
