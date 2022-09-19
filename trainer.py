@@ -37,9 +37,9 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
             batch_count += 1
             sent, input_ids, attn_mask = batch.values()
 
-            attn_mask.to(device)
-            input_ids.to(device)
-            sent.to(device)
+            attn_mask = attn_mask.to(device)
+            input_ids = input_ids.to(device)
+            sent = sent.to(device)
             
             model.zero_grad()
             logits = model(input_ids, attn_mask)
@@ -48,7 +48,9 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
             batch_loss += loss.detach()
             total_loss += loss.detach()
 
-            torch.nn.utils.clip_grad_norm(model.parameters(), 1.0)
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
             scheduler.step()
@@ -60,7 +62,7 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
         avg_loss = total_loss / len(train_dataloader)
         print(colored(f"Total loss is: {avg_loss}", "green"))
         if evaluation:
-            val_loss, val_acc = evaluate(model, val_dataloader)
+            val_loss, val_acc = evaluate(model, val_dataloader, loss_fn, device)
             print(f"Val Loss: {val_loss:.2f} - Val Acc: {val_acc:.2f}")
     save_info = {
         'model_state_dict': model.state_dict(),
@@ -76,9 +78,9 @@ def evaluate(model, val_dataloader, loss_fn, device):
     for batch in val_dataloader:
         sent, input_ids, attn_mask = batch.values()
 
-        attn_mask.to(device)
-        input_ids.to(device)
-        sent.to(device)
+        attn_mask = attn_mask.to(device)
+        input_ids = input_ids.to(device)
+        sent = sent.to(device)
 
         with torch.no_grad():
             logits = model(input_ids, attn_mask)
