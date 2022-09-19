@@ -56,11 +56,11 @@ def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer,
             scheduler.step()
 
             if idx % log_interval == 0:
-                print(f"Batch [{idx}|{len(train_dataloader)}]: Loss {batch_loss / batch_count:.2f}")
+                print(f"Batch [{idx}|{len(train_dataloader)}]: Loss {batch_loss / batch_count:.3f}")
                 batch_loss, batch_count = 0, 0
         
         avg_loss = total_loss / len(train_dataloader)
-        print(colored(f"Total loss is: {avg_loss}", "green"))
+        print(colored(f"Total loss is: {avg_loss:.3f}", "green"))
         if evaluation:
             val_loss, val_acc = evaluate(model, val_dataloader, loss_fn, device)
             print(f"Val Loss: {val_loss:.2f} - Val Acc: {val_acc:.2f}")
@@ -86,7 +86,7 @@ def evaluate(model, val_dataloader, loss_fn, device):
             logits = model(input_ids, attn_mask)
         
         loss = loss_fn(logits, sent)
-        val_loss.append(loss)
+        val_loss.append(loss.item())
 
         preds = torch.argmax(logits, dim=1).flatten()
         acc = (preds == sent).cpu().numpy().mean() * 100
