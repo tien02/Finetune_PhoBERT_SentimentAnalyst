@@ -12,9 +12,9 @@ class PhoBERTTrainer(LightningModule):
         super(PhoBERTTrainer, self).__init__()
         self.model = PhoBertClassifier()
         self.loss_fn = nn.CrossEntropyLoss()
-        self.accuracy = Accuracy(threshold=config.THRESHOLD)
-        self.precision = Precision(threshold=config.THRESHOLD)
-        self.recall = Recall(threshold=config.THRESHOLD)
+        self.acc = Accuracy(threshold=config.THRESHOLD)
+        self.pre = Precision(threshold=config.THRESHOLD)
+        self.re = Recall(threshold=config.THRESHOLD)
         self.f1 = F1Score(threshold=config.THRESHOLD)   
     
     def training_step(self, batch):
@@ -33,14 +33,14 @@ class PhoBERTTrainer(LightningModule):
 
         loss = self.loss_fn(logits, sent)
 
-        acc = self.accuracy(logits, sent)
-        pre = self.precision(logits, sent)
-        recall = self.recall(logits, sent)
+        acc = self.acc(logits, sent)
+        pre = self.pre(logits, sent)
+        recall = self.re(logits, sent)
         f1 = self.f1(logits, sent)
         
         self.log_dict({
             "loss": loss,
-            "accuracy": acc
+            "accuracy": acc,
             "precision": pre,
             "recall": recall,
             "f1_score": f1
@@ -54,20 +54,18 @@ class PhoBERTTrainer(LightningModule):
 
         loss = self.loss_fn(logits, sent)
 
-        acc = self.accuracy(logits, sent)
-        pre = self.precision(logits, sent)
-        recall = self.recall(logits, sent)
+        acc = self.acc(logits, sent)
+        pre = self.pre(logits, sent)
+        recall = self.re(logits, sent)
         f1 = self.f1(logits, sent)
 
         self.log_dict({
             "loss": loss,
-            "accuracy": acc
+            "accuracy": acc,
             "precision": pre,
             "recall": recall,
             "f1_score": f1
         })
-
-        return loss
 
     def configure_optimizers(self):
         optimizer = AdamW(self.model.parameters(), lr=5e-5, eps=1e-8)
