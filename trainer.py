@@ -1,101 +1,57 @@
 import config
-import random 
-import numpy as np
 import torch
-
+import torch.nn as nn
+from dataset import train_dataloader
 from torch.optim import AdamW
+from torchmetrics import Accuracy
 from model import PhoBertClassifier
-from transformers import get_linear_schedule_with_warmup
-from termcolor import colored
+from pytorch_lightning import LightningModule
 
-def set_seed(seed_value=69):
-    random.seed(seed_value)
-    np.random.seed(seed_value)
-    torch.manual_seed(seed_value)
-    torch.cuda.manual_seed(seed_value)
-
-def init_model(device, train_dataloader, epochs=4):
-    bert_classifier = PhoBertClassifier(freeze_backbone=False)
-    bert_classifier.to(device)
-    optimizer = AdamW(bert_classifier.parameters(), lr=5e-5, eps=1e-8)
-    total_steps = len(train_dataloader) * epochs
-    scheduler = get_linear_schedule_with_warmup(optimizer=optimizer,num_warmup_steps=0, num_training_steps=total_steps)
-
-    return bert_classifier, optimizer, scheduler
-
-def trainer(model, train_dataloader, val_dataloader, device, loss_fn, optimizer, scheduler, epochs, log_interval, evaluation=False):
-    '''
-    Train PhoBertClassifier
-    '''
-    print(colored("Start Training...", "blue"))
-    for epoch in range(epochs):
-        print()
-        print("-" * 35)
-        print(colored(f"Epoch {epoch + 1}", "yellow"))
-        total_loss, batch_loss, batch_count = 0, 0, 0
-        model.train()
-
-        for idx, batch in enumerate(train_dataloader):
-            batch_count += 1
-            sent, input_ids, attn_mask = batch.values()
-
-            attn_mask = attn_mask.to(device)
-            input_ids = input_ids.to(device)
-            sent = sent.to(device)
-            
-            model.zero_grad()
-            logits = model(input_ids, attn_mask)
-
-            loss = loss_fn(logits, sent)
-            batch_loss += loss.detach()
-            total_loss += loss.detach()
-
-            loss.backward()
-
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-
-            optimizer.step()
-            scheduler.step()
-
-            if idx % log_interval == 0:
-                print(f"\t[{idx}|{len(train_dataloader)}]: Loss {batch_loss / batch_count:.3f}")
-                batch_loss, batch_count = 0, 0
-        
-        avg_loss = total_loss / len(train_dataloader)
-        print(colored(f"Total loss: {avg_loss:.3f}", "green"))
-        if evaluation:
-            val_loss, val_acc = evaluate(model, val_dataloader, loss_fn, device)
-            print(colored(f"Val Loss: {val_loss:.3f} | Val Acc: {val_acc:.3f}", "green"))
-            print("-" * 35)
-    save_info = {
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-    }    
-    torch.save(save_info, f"checkpoint_one.pt")
-    print(colored("Training Completed!", "blue"))
-
-def evaluate(model, val_dataloader, loss_fn, device):
-    model.eval()
-    val_loss = []
-    val_acc = []
-    for batch in val_dataloader:
+class PhoBERTTrainer(LightningModule):
+    def __init__(self):
+        super(PhoBERTTrainer, self).__init__()
+        self.model = PhoBertClassifier()
+        self.loss_fn = nn.CrossEntropyLoss()
+        self.accuracy = Accuracy()
+    
+    def training_step(self, batch):
         sent, input_ids, attn_mask = batch.values()
 
-        attn_mask = attn_mask.to(device)
-        input_ids = input_ids.to(device)
-        sent = sent.to(device)
+        logits = self.model(input_ids, attn_mask)
 
-        with torch.no_grad():
-            logits = model(input_ids, attn_mask)
+        loss = self.loss_fn(logits, sent)
+        self.log("train_loss", loss)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        sent, input_ids, attn_mask = batch.values()
+        logits = self.model(input_ids, attn_mask)
+
+        loss = self.loss_fn(logits, sent)
+        acc = self.accuracy(logits, sent)
+
+        self.log("test_loss", loss)
+        self.log("test_accuracy", acc)
         
-        loss = loss_fn(logits, sent)
-        val_loss.append(loss.item())
+        return loss
+        
 
-        preds = torch.argmax(logits, dim=1).flatten()
-        acc = (preds == sent).cpu().numpy().mean() * 100
+    def validation_step(self, batch, batch_idx):
+        sent, input_ids, attn_mask = batch.values()
+        logits = self.model(input_ids, attn_mask)
 
-        val_acc.append(acc)
+        loss = self.loss_fn(logits, sent)
+        acc = self.accuracy(logits, sent)
 
-    val_loss = np.mean(val_loss)
-    val_acc = np.mean(val_acc)
-    return val_loss, val_acc
+        self.log("val_loss", loss)
+        self.log("val_accuracy", acc)
+
+        return loss
+
+    def configure_optimizers(self):
+        optimizer = AdamW(self.model.parameters(), lr=5e-5, eps=1e-8)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_dataloader), epochs=config.EPOCHS)
+        return {
+            "optimizer":optimizer,
+            "lr_scheduler": scheduler
+        }
