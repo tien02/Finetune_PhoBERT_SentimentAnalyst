@@ -1,16 +1,22 @@
 import config
-from pyvi import ViTokenizer
 from dataset import train_dataloader, eval_dataloader
 from pytorch_lightning import Trainer, seed_everything
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from trainer import PhoBERTTrainer
 
 def main():
         seed_everything(69)
 
         model = PhoBERTTrainer()
+
+        checkpoint_callback = ModelCheckpoint(dirpath= config.CKPT_DIR, monitor="val_loss",
+                                                save_top_k=3, mode="min")
+        early_stopping = EarlyStopping(monitor="val_loss", mode="min", check_finite=True)
+
         trainer = Trainer(accelerator='gpu', check_val_every_n_epoch=config.VAL_EACH_EPOCH,
                         gradient_clip_val=1.0,max_epochs=config.EPOCHS,
-                        enable_checkpointing=True, deterministic=True, default_root_dir=config.CKPT_DIR)
+                        enable_checkpointing=True, deterministic=True, default_root_dir=config.CKPT_DIR,
+                        callbacks=[checkpoint_callback, early_stopping])
         trainer.fit(model=model, 
                 train_dataloaders=train_dataloader, 
                 val_dataloaders=eval_dataloader, 

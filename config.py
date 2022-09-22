@@ -3,8 +3,8 @@ import torch
 CHECKPOINT = "vinai/phobert-base"
 DATA_PATH = "uit-nlp/vietnamese_students_feedback"
 
-EPOCHS = 3
-VAL_EACH_EPOCH = 1
+EPOCHS = 24
+VAL_EACH_EPOCH = 4
 NUM_CLASSES = 3
 BATCH_SIZE = 64
 MID_HIDDEN_LAYER = 384
