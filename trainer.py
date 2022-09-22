@@ -42,12 +42,12 @@ class PhoBERTTrainer(LightningModule):
         f1 = self.f1(logits, sent)
         
         self.log_dict({
-            "loss": loss,
-            "accuracy": acc,
-            "precision": pre,
-            "recall": recall,
-            "f1_score": f1
-        })
+            "test_loss": loss,
+            "test_accuracy": acc,
+            "test_precision": pre,
+            "test_recall": recall,
+            "test_f1_score": f1
+        }, on_step=True, on_epoch=True, prog_bar=True)
         
 
     def validation_step(self, batch, batch_idx):
@@ -63,12 +63,12 @@ class PhoBERTTrainer(LightningModule):
         f1 = self.f1(logits, sent)
 
         self.log_dict({
-            "loss": loss,
-            "accuracy": acc,
-            "precision": pre,
-            "recall": recall,
-            "f1_score": f1
-        })
+            "val_loss": loss,
+            "val_accuracy": acc,
+            "val_precision": pre,
+            "val_recall": recall,
+            "val_f1_score": f1
+        }, on_step=True, on_epoch=True, prog_bar=True)
 
     def configure_optimizers(self):
         optimizer = AdamW(self.model.parameters(), lr=5e-5, eps=1e-8)
