@@ -15,7 +15,10 @@ class PhoBERTTrainer(LightningModule):
         self.acc = Accuracy(threshold=config.THRESHOLD)
         self.pre = Precision(threshold=config.THRESHOLD)
         self.re = Recall(threshold=config.THRESHOLD)
-        self.f1 = F1Score(threshold=config.THRESHOLD)   
+        self.f1 = F1Score(threshold=config.THRESHOLD)
+
+    def forward(self, input_ids, attn_mask):
+        return self.model(input_ids, attn_mask)
     
     def training_step(self, batch):
         sent, input_ids, attn_mask = batch.values()
@@ -69,7 +72,8 @@ class PhoBERTTrainer(LightningModule):
 
     def configure_optimizers(self):
         optimizer = AdamW(self.model.parameters(), lr=5e-5, eps=1e-8)
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_dataloader), epochs=config.EPOCHS)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01,
+                    steps_per_epoch=len(train_dataloader), epochs=config.EPOCHS)
         return {
             "optimizer":optimizer,
             "lr_scheduler": scheduler
