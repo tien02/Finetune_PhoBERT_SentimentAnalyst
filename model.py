@@ -8,9 +8,9 @@ class PhoBertClassifier(nn.Module):
         self.bert = AutoModel.from_pretrained(config.CHECKPOINT)
         self.act = nn.Softmax(dim=1)
         self.classifier = nn.Sequential(
-            nn.Linear(768, config.MID_HIDDEN_LAYER),
-            nn.ReLU(),
-            nn.Linear(config.MID_HIDDEN_LAYER, config.NUM_CLASSES))
+            nn.Linear(768, 768),
+            nn.Dropout(0.1),
+            nn.Linear(768, config.NUM_CLASSES))
         
         if freeze_backbone:
             for param in self.bert.parameters():

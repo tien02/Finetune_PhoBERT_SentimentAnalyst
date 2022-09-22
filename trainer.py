@@ -2,8 +2,8 @@ import config
 import torch
 import torch.nn as nn
 from dataset import train_dataloader
-from torch.optim import AdamW
-from torchmetrics import Accuracy, Precision, Recall, F1Score
+from torch.optim import Adam
+from torchmetrics import Accuracy
 from model import PhoBertClassifier
 from pytorch_lightning import LightningModule
 
@@ -13,9 +13,6 @@ class PhoBERTTrainer(LightningModule):
         self.model = PhoBertClassifier()
         self.loss_fn = nn.CrossEntropyLoss()
         self.acc = Accuracy(threshold=config.THRESHOLD)
-        self.pre = Precision(threshold=config.THRESHOLD)
-        self.re = Recall(threshold=config.THRESHOLD)
-        self.f1 = F1Score(threshold=config.THRESHOLD)
 
     def forward(self, input_ids, attn_mask):
         return self.model(input_ids, attn_mask)
@@ -37,16 +34,10 @@ class PhoBERTTrainer(LightningModule):
         loss = self.loss_fn(logits, sent)
 
         acc = self.acc(logits, sent)
-        pre = self.pre(logits, sent)
-        recall = self.re(logits, sent)
-        f1 = self.f1(logits, sent)
         
         self.log_dict({
             "test_loss": loss,
             "test_accuracy": acc,
-            "test_precision": pre,
-            "test_recall": recall,
-            "test_f1_score": f1
         }, on_step=True, on_epoch=True, prog_bar=True)
         
 
@@ -58,21 +49,15 @@ class PhoBERTTrainer(LightningModule):
         loss = self.loss_fn(logits, sent)
 
         acc = self.acc(logits, sent)
-        pre = self.pre(logits, sent)
-        recall = self.re(logits, sent)
-        f1 = self.f1(logits, sent)
 
         self.log_dict({
             "val_loss": loss,
-            "val_accuracy": acc,
-            "val_precision": pre,
-            "val_recall": recall,
-            "val_f1_score": f1
+            "val_accuracy": acc
         }, on_step=True, on_epoch=True, prog_bar=True)
 
     def configure_optimizers(self):
-        optimizer = AdamW(self.model.parameters(), lr=5e-5, eps=1e-8)
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01,
+        optimizer = Adam(self.model.parameters(), lr=1e-4, eps=1e-6, weight_decay=0.01)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-4,
                     steps_per_epoch=len(train_dataloader), epochs=config.EPOCHS)
         return {
             "optimizer":optimizer,
