@@ -20,11 +20,10 @@ map_dict = {
 
 if __name__ == "__main__":
     sentence = input("Enter a sentence: ")
-    seg_sentence = ViTokenizer.tokenize(sentence)
+    seg_sentence = ViTokenizer.tokenize(sentence.lower())
     tokens = tokenizer(seg_sentence, return_tensors='pt')
 
     with torch.no_grad():
         output = model(tokens["input_ids"].to(device), tokens["attention_mask"].to(device))
-        print(torch.argmax(output, dim=1).item())
         print(f">> RESULT: {map_dict.get(int(torch.argmax(output, dim=1).item()), -1)}")
     print("Done...")
