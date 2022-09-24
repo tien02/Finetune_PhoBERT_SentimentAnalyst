@@ -10,5 +10,5 @@ THRESHOLD=0.5
 
 EVALUATE_WHILE_TRAINING = True
 CKPT_DIR = "./checkpoint"
-CKPT_PATH = None    # Checkpoint for inference, default is None
+CKPT_PATH = "checkpoint\epoch=19-step=3580.ckpt"    # Checkpoint for inference, default is None
 CKPT_RESUME_TRAIN = None    # Checkpoint for continue training, default is None
