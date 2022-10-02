@@ -1,9 +1,9 @@
 import config
 from torch.utils.data import DataLoader
-from transformers import AutoTokenizer, DataCollatorWithPadding
+from transformers import PhobertTokenizer, DataCollatorWithPadding
 from datasets import load_dataset
 
-tokenizer = AutoTokenizer.from_pretrained(config.CHECKPOINT)
+tokenizer = PhobertTokenizer.from_pretrained(config.CHECKPOINT)
 
 def tokenize_function(sentence):
     return tokenizer(sentence['sentence'], truncation=True)

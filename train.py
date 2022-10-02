@@ -11,10 +11,10 @@ def main():
         model = PhoBERTTrainer()
 
         checkpoint_callback = ModelCheckpoint(dirpath= config.CKPT_DIR, monitor="val_loss",
-                                                save_top_k=3, mode="min")
+                                                save_top_k=3, mode="min", save_weights_only=True)
         early_stopping = EarlyStopping(monitor="val_loss", mode="min", check_finite=True)
 
-        logger = TensorBoardLogger(config.CKPT_DIR, name="my_model", version=0)
+        logger = TensorBoardLogger(config.CKPT_DIR, name=config.LOGGER["name"], version=config.LOGGER["version"])
 
         trainer = Trainer(accelerator='gpu', check_val_every_n_epoch=config.VAL_EACH_EPOCH,
                         gradient_clip_val=1.0,max_epochs=config.EPOCHS,

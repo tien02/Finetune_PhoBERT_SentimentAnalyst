@@ -1,16 +1,19 @@
 import config
 import torch.nn as nn
-from transformers import AutoModel
+from transformers import RobertaModel, RobertaConfig
 
 class PhoBertClassifier(nn.Module):
-    def __init__(self, freeze_backbone=False):
+    def __init__(self, from_pretrained=True, freeze_backbone=False):
         super(PhoBertClassifier, self).__init__()
-        self.bert = AutoModel.from_pretrained(config.CHECKPOINT)
-        self.act = nn.Softmax(dim=1)
+        phobert_config = RobertaConfig.from_pretrained(config.CHECKPOINT)
+        self.bert = RobertaModel(config=phobert_config)
+        if from_pretrained:
+          self.bert = RobertaModel.from_pretrained(config.CHECKPOINT)
+        self.act = nn.LogSoftmax(dim=1)
         self.classifier = nn.Sequential(
-            nn.Linear(768, 768),
+            nn.Linear(config.MID_HIDDEN_LAYER, config.MID_HIDDEN_LAYER),
             nn.Dropout(0.1),
-            nn.Linear(768, config.NUM_CLASSES))
+            nn.Linear(config.MID_HIDDEN_LAYER, config.NUM_CLASSES))
         
         if freeze_backbone:
             for param in self.bert.parameters():

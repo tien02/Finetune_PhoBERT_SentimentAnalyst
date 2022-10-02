@@ -16,9 +16,7 @@ model.freeze()
 if __name__ == "__main__":
     seed_everything(69)
 
-    trainer = Trainer(accelerator='gpu', check_val_every_n_epoch=config.VAL_EACH_EPOCH,
-                    gradient_clip_val=1.0,max_epochs=config.EPOCHS,
-                    enable_checkpointing=True, deterministic=True, default_root_dir=config.CKPT_DIR)
+    trainer = Trainer(accelerator='gpu')
 
     print("\nEvaluate on Validation Set:\n")
     trainer.validate(model=model, ckpt_path=config.CKPT_PATH, dataloaders=eval_dataloader)

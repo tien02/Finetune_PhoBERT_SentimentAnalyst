@@ -6,7 +6,7 @@ from trainer import PhoBERTTrainer
 from termcolor import colored
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = PhoBERTTrainer()
+model = PhoBERTTrainer(train=False)
 model.to(device)
 checkpoint = torch.load(config.CKPT_PATH, map_location=device)
 model.load_state_dict(checkpoint["state_dict"])
