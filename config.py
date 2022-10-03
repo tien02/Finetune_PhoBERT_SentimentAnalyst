@@ -8,6 +8,8 @@ BATCH_SIZE = 64
 MID_HIDDEN_LAYER = 768
 THRESHOLD=0.5
 
+MODEL = "FeedForward"   # "FeedForward", "LSTM", "CNN"
+
 LOGGER = {
   "name": "PhoBERT_base",
   "version": 0,

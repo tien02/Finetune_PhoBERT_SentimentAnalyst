@@ -4,13 +4,12 @@ import torch.nn as nn
 from dataset import train_dataloader
 from torch.optim import Adam
 from torchmetrics import Accuracy, F1Score
-from model import PhoBertClassifier
 from pytorch_lightning import LightningModule
 
-class PhoBERTTrainer(LightningModule):
-    def __init__(self, train=True, freeze_backbone=False):
-        super(PhoBERTTrainer, self).__init__()
-        self.model = PhoBertClassifier(from_pretrained=train, freeze_backbone=freeze_backbone)
+class PhoBERTModel(LightningModule):
+    def __init__(self, model):
+        super(PhoBERTModel, self).__init__()
+        self.model = model
         self.loss_fn = nn.CrossEntropyLoss()
         self.acc = Accuracy(threshold=config.THRESHOLD)
         self.f1 = F1Score(threshold=config.THRESHOLD)
