@@ -2,16 +2,27 @@ import config
 import torch
 from pyvi import ViTokenizer
 from dataset import tokenizer
-from trainer import PhoBERTTrainer
+from model import PhoBertFeedForward, PhoBERTLSTM
+from trainer import PhoBERTModel
 from termcolor import colored
 
+if config.MODEL == "FeedForward":
+    model = PhoBertFeedForward(from_pretrained=False)
+    print(colored("\Evaluate PhoBERT FeedForward Network\n", "green"))
+elif config.MODEL == "LSTM":
+    model = PhoBERTLSTM(from_pretrained=False)
+    print(colored("\nEvaluate PhoBERT LSTM Network\n", "green"))
+else:
+    print(colored("\nEvaluate PhoBERT CNN Network\n", "green"))
+    pass
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = PhoBERTTrainer(train=False)
-model.to(device)
+system = PhoBERTModel(model)
+system.to(device)
 checkpoint = torch.load(config.CKPT_PATH, map_location=device)
-model.load_state_dict(checkpoint["state_dict"])
-model.eval()
-model.freeze()
+system.load_state_dict(checkpoint["state_dict"])
+system.eval()
+system.freeze()
 
 map_dict = {
     0: "Negative",
@@ -27,7 +38,7 @@ if __name__ == "__main__":
         seg_sentence = ViTokenizer.tokenize(sentence.lower())
         tokens = tokenizer(seg_sentence, return_tensors='pt')
         with torch.no_grad():
-            output = model(tokens["input_ids"].to(device), tokens["attention_mask"].to(device))
+            output = system(tokens["input_ids"].to(device), tokens["attention_mask"].to(device))
             pred_label = int(torch.argmax(output, dim=1).item())
             accuracy = round(output[0][pred_label].item(), 3)
             if pred_label == 2:

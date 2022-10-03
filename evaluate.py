@@ -16,7 +16,7 @@ elif config.MODEL == "LSTM":
 else:
     print(colored("\nEvaluate PhoBERT CNN Network\n", "green"))
     pass
-system = PhoBERTModel()
+system = PhoBERTModel(model)
 system.to(device)
 checkpoint = torch.load(config.CKPT_PATH)
 system.load_state_dict(checkpoint["state_dict"])
