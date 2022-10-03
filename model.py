@@ -38,7 +38,7 @@ class PhoBERTLSTM(nn.Module):
     self.lstm = nn.LSTM(input_size=config.MID_HIDDEN_LAYER, 
                         hidden_size=config.MID_HIDDEN_LAYER, 
                         batch_first=True, bidirectional=True, num_layers=1)
-    self.dropout = nn.Dropout(0.4)
+    self.dropout = nn.Dropout(0.1)
     self.linear = nn.Linear(config.MID_HIDDEN_LAYER * 2, config.NUM_CLASSES)
     self.act = nn.LogSoftmax(dim=1)
 

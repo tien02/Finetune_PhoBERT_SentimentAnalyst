@@ -22,7 +22,7 @@ def main():
         system = PhoBERTModel(model=model)
 
         checkpoint_callback = ModelCheckpoint(dirpath= config.CKPT_DIR, monitor="val_loss",
-                                                save_top_k=3, mode="min", save_weights_only=True)
+                                                save_top_k=3, mode="min")
         early_stopping = EarlyStopping(monitor="val_loss", mode="min", check_finite=True)
 
         logger = TensorBoardLogger(config.CKPT_DIR, name=config.LOGGER["name"], version=config.LOGGER["version"])
