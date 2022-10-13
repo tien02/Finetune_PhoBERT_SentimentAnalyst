@@ -1,4 +1,4 @@
-import config
+import config.train_config as train_config
 import torch
 import torch.nn as nn
 from dataset import train_dataloader
@@ -11,8 +11,8 @@ class PhoBERTModel(LightningModule):
         super(PhoBERTModel, self).__init__()
         self.model = model
         self.loss_fn = nn.CrossEntropyLoss()
-        self.acc = Accuracy(threshold=config.THRESHOLD)
-        self.f1 = F1Score(threshold=config.THRESHOLD)
+        self.acc = Accuracy(threshold=train_config.THRESHOLD)
+        self.f1 = F1Score(threshold=train_config.THRESHOLD)
 
     def forward(self, input_ids, attn_mask):
         return self.model(input_ids, attn_mask)
@@ -62,7 +62,7 @@ class PhoBERTModel(LightningModule):
     def configure_optimizers(self):
         optimizer = Adam(self.model.parameters(), lr=1e-4, eps=1e-6, weight_decay=0.01)
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-4,
-                    steps_per_epoch=len(train_dataloader), epochs=config.EPOCHS)
+                    steps_per_epoch=len(train_dataloader), epochs=train_config.EPOCHS)
         return {
             "optimizer":optimizer,
             "lr_scheduler": scheduler

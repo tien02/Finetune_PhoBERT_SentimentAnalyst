@@ -1,25 +1,28 @@
-import config
+import config.train_config as train_config
 import torch
 from pyvi import ViTokenizer
 from dataset import tokenizer
-from model import PhoBertFeedForward, PhoBERTLSTM
+from model import PhoBERTLSTM_base, PhoBERTLSTM_large, PhoBertFeedForward_base, PhoBertFeedForward_large
 from trainer import PhoBERTModel
 from termcolor import colored
 
-if config.MODEL == "FeedForward":
-    model = PhoBertFeedForward(from_pretrained=False)
-    print(colored("\Evaluate PhoBERT FeedForward Network\n", "green"))
-elif config.MODEL == "LSTM":
-    model = PhoBERTLSTM(from_pretrained=False)
-    print(colored("\nEvaluate PhoBERT LSTM Network\n", "green"))
+if train_config.MODEL == "FeedForward-base":
+    model = PhoBertFeedForward_base()
+    print(colored("\nUse PhoBERT FeedForward base\n", "green"))
+elif train_config.MODEL == "FeedForward-large":
+    model = PhoBertFeedForward_large()
+    print(colored("\nUse PhoBERT FeedForward large\n", "green"))
+elif train_config.MODEL == "LSTM-base":
+    model = PhoBERTLSTM_base()
+    print(colored("\nUse PhoBERT LSTM base\n", "green"))
 else:
-    print(colored("\nEvaluate PhoBERT CNN Network\n", "green"))
-    pass
+    model = PhoBERTLSTM_large()
+    print(colored("\nUse PhoBERT LSTM large\n", "green"))
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 system = PhoBERTModel(model)
 system.to(device)
-checkpoint = torch.load(config.CKPT_PATH, map_location=device)
+checkpoint = torch.load(train_config.CKPT_PATH, map_location=device)
 system.load_state_dict(checkpoint["state_dict"])
 system.eval()
 system.freeze()
