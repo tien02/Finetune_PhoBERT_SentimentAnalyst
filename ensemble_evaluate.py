@@ -1,5 +1,6 @@
 import config.ensemble_config as ensemble_config
 import torch
+import numpy as np
 from tqdm import tqdm
 from dataset import test_dataloader
 from model import PhoBERTLSTM_base, PhoBERTLSTM_large, PhoBertFeedForward_base, PhoBertFeedForward_large
@@ -32,7 +33,7 @@ def ensemble_fn(pred1, pred2):
 if __name__ == '__main__':
     # Metrics
     accuracy = Accuracy().to(ensemble_config.DEVICE)
-    f1 = F1Score().to(ensemble_config.DEVICE)
+    f1_score = F1Score().to(ensemble_config.DEVICE)
 
     # Checkpoint
     ckpt1 = torch.load(ensemble_config.CKPT1, map_location=ensemble_config.DEVICE)
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     acc_list = []
     f1_list = []
     with torch.no_grad():
-        loop = tqdm(range(test_dataloader))
+        loop = tqdm(test_dataloader)
         for data in loop:
             pred1 = model1(data["input_ids"].to(ensemble_config.DEVICE), data["attention_mask"].to(ensemble_config.DEVICE))
             pred2 = model2(data["input_ids"].to(ensemble_config.DEVICE), data["attention_mask"].to(ensemble_config.DEVICE))
@@ -54,16 +55,13 @@ if __name__ == '__main__':
             prediction = ensemble_fn(pred1, pred2)
 
             acc = accuracy(prediction, data["sentiment"].to(ensemble_config.DEVICE))
-            f1 = f1(prediction, data["sentiment"].to(ensemble_config.DEVICE))
+            f1 = f1_score(prediction, data["sentiment"].to(ensemble_config.DEVICE))
             
-            acc_list.append(acc)
-            f1_list.append(f1_list)
+            acc_list.append(acc.item())
+            f1_list.append(f1.item())
 
             loop.set_description("Proceeding")
-            loop.set_postfix(acc=acc)
-            
-    acc_list = torch.cat(acc_list, 0)
-    f1_list = torch.cat(f1_list, 0)
+            loop.set_postfix(acc=acc.item())
 
-    print(colored(f"Accuracy: {torch.mean(acc_list)}", "blue"))
-    print(colored(f"F1 Score: {torch.mean(f1_list)}", "blue"))
+    print(colored(f"Accuracy: {np.mean(np.array(acc_list)):.3f}", "blue"))
+    print(colored(f"F1 Score: {np.mean(np.array(f1_list)):.3f}", "blue"))
