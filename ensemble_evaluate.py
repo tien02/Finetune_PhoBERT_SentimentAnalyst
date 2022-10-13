@@ -9,16 +9,16 @@ from termcolor import colored
 
 def GetModel(model_name, ckpt, number):
     if model_name == "FeedForward-base":
-        model = PhoBertFeedForward_base()
+        model = PhoBertFeedForward_base(from_pretrained=False)
         print(colored(f"Model {number}: PhoBERT FeedForward base", "green"))
     elif model_name == "FeedForward-large":
-        model = PhoBertFeedForward_large()
+        model = PhoBertFeedForward_large(from_pretrained=False)
         print(colored(f"Model {number}: PhoBERT FeedForward large", "green"))
     elif model_name == "LSTM-base":
-        model = PhoBERTLSTM_base()
+        model = PhoBERTLSTM_base(from_pretrained=False)
         print(colored(f"Model {number}: PhoBERT LSTM base", "green"))
     elif model_name == "LSTM-large":
-        model = PhoBERTLSTM_large()
+        model = PhoBERTLSTM_large(from_pretrained=False)
         print(colored(f"Model {number}: PhoBERT LSTM large", "green"))
     system = PhoBERTModel(model)
     system.load_state_dict(ckpt["state_dict"])

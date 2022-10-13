@@ -8,16 +8,16 @@ from termcolor import colored
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if train_config.MODEL == "FeedForward-base":
-    model = PhoBertFeedForward_base()
+    model = PhoBertFeedForward_base(from_pretrained=False)
     print(colored("\nEvaluate PhoBERT FeedForward base\n", "green"))
 elif train_config.MODEL == "FeedForward-large":
-    model = PhoBertFeedForward_large()
+    model = PhoBertFeedForward_large(from_pretrained=False)
     print(colored("\nEvaluate PhoBERT FeedForward large\n", "green"))
 elif train_config.MODEL == "LSTM-base":
-    model = PhoBERTLSTM_base()
+    model = PhoBERTLSTM_base(from_pretrained=False)
     print(colored("\nEvaluate PhoBERT LSTM base\n", "green"))
 else:
-    model = PhoBERTLSTM_large()
+    model = PhoBERTLSTM_large(from_pretrained=False)
     print(colored("\nEvaluate PhoBERT LSTM large\n", "green"))
 system = PhoBERTModel(model)
 system.to(device)
