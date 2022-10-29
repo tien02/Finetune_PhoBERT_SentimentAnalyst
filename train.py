@@ -1,5 +1,6 @@
 import config.train_config as train_config
-from dataset import train_dataloader, eval_dataloader
+from torch.utils.data import DataLoader
+from dataset import UIT_VFSC_Dataset, collate_fn
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from trainer import PhoBERTModel
@@ -9,6 +10,13 @@ from termcolor import colored
 
 def main():
         seed_everything(69)
+
+        train_data = UIT_VFSC_Dataset(root_dir=train_config.DATA_PATH)
+        eval_data = UIT_VFSC_Dataset(root_dir=train_config.DATA_PATH)
+
+        train_dataloader = DataLoader(dataset=train_data, collate_fn=collate_fn, batch_size=train_config.BATCH_SIZE)
+        eval_dataloader = DataLoader(dataset=eval_data, collate_fn=collate_fn, batch_size=train_config.BATCH_SIZE)
+
         
         if train_config.MODEL == "FeedForward-base":
                 model = PhoBertFeedForward_base()

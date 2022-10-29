@@ -19,7 +19,8 @@ else:
     model = PhoBERTLSTM_large(from_pretrained=False)
     print(colored("\nUse PhoBERT LSTM large\n", "green"))
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 system = PhoBERTModel(model)
 system.to(device)
 checkpoint = torch.load(train_config.CKPT_PATH, map_location=device)

@@ -1,20 +1,43 @@
+import torch
+import torch.nn as nn
+import pandas as pd
 import config.train_config as train_config
-from torch.utils.data import DataLoader
-from transformers import PhobertTokenizer, DataCollatorWithPadding
-from datasets import load_dataset
+from torch.utils.data import Dataset
+from transformers import PhobertTokenizer
+from utils import preprocess_fn
 
 tokenizer = PhobertTokenizer.from_pretrained(train_config.CHECKPOINT)
 
-def tokenize_function(sentence):
-    return tokenizer(sentence['sentence'], truncation=True)
+class UIT_VFSC_Dataset(Dataset):
+    def __init__(self, root_dir, label="sentiments"):
+        self.dataframe = pd.read_csv(root_dir, sep="\t")
+        self.label = label
+    
+    def __len__(self):
+        return len(self.dataframe)
 
-dataset = load_dataset(train_config.DATA_PATH)
+    def __getitem__(self, index):
+        df = self.dataframe.iloc[index]
+        X = df["sents"]
+        y = df[self.label]
 
-tokenized_datasets = dataset.map(tokenize_function, batched=True)
-data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+        x_tokens = preprocess_fn(X)
+        tokens = tokenizer(x_tokens)
 
-tokenized_datasets = tokenized_datasets.remove_columns(['sentence', 'topic', 'token_type_ids'])
+        return torch.tensor(tokens["input_ids"]), torch.tensor(tokens["attention_mask"]), torch.tensor(y), len(tokens["attention_mask"])
+        
+def collate_fn(batch):
+    input_ids_list, attn_mask_list, label_list, length_list = [], [], [], []
+    for input_ids, attn_mask, label, length in batch:
+        input_ids_list.append(input_ids)
+        attn_mask_list.append(attn_mask)
+        label_list.append(label)
+        length_list.append(length)
 
-train_dataloader = DataLoader(tokenized_datasets["train"], shuffle=True, batch_size=train_config.BATCH_SIZE, collate_fn=data_collator)
-eval_dataloader = DataLoader(tokenized_datasets["validation"], batch_size=train_config.BATCH_SIZE, collate_fn=data_collator)
-test_dataloader = DataLoader(tokenized_datasets["test"], batch_size=train_config.BATCH_SIZE, collate_fn=data_collator)
+    label_list = torch.tensor(label_list, dtype=torch.int64)
+    length_list = torch.tensor(length_list)
+    
+    input_ids_list = nn.utils.rnn.pad_sequence(input_ids_list)
+    attn_mask_list = nn.utils.rnn.pad_sequence(attn_mask_list)
+
+    return input_ids_list, attn_mask_list, label_list

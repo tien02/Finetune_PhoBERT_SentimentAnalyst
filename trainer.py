@@ -1,10 +1,12 @@
 import config.train_config as train_config
 import torch
 import torch.nn as nn
-from dataset import train_dataloader
+from dataset import UIT_VFSC_Dataset
 from torch.optim import Adam
 from torchmetrics import Accuracy, F1Score
 from pytorch_lightning import LightningModule
+
+dataset = UIT_VFSC_Dataset(root_dir=train_config.DATA_PATH)
 
 class PhoBERTModel(LightningModule):
     def __init__(self, model):
@@ -62,7 +64,7 @@ class PhoBERTModel(LightningModule):
     def configure_optimizers(self):
         optimizer = Adam(self.model.parameters(), lr=1e-4, eps=1e-6, weight_decay=0.01)
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-4,
-                    steps_per_epoch=len(train_dataloader), epochs=train_config.EPOCHS)
+                    steps_per_epoch=len(dataset), epochs=train_config.EPOCHS)
         return {
             "optimizer":optimizer,
             "lr_scheduler": scheduler
