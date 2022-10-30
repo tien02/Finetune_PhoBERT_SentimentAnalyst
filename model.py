@@ -10,7 +10,6 @@ class PhoBertFeedForward_base(nn.Module):
         self.bert = RobertaModel(config=phobert_config)
         if from_pretrained:
           self.bert = RobertaModel.from_pretrained("vinai/phobert-base")
-        self.act = nn.LogSoftmax(dim=1)
         self.classifier = nn.Sequential(
             nn.Linear(768, 768),
             nn.Dropout(train_config.DROP_OUT),
@@ -24,7 +23,7 @@ class PhoBertFeedForward_base(nn.Module):
         bert_feature = self.bert(input_ids=input_ids, attention_mask=attn_mask)
         last_hidden_cls = bert_feature[0][:, 0, :]
         logits = self.classifier(last_hidden_cls)
-        return self.act(logits)
+        return logits
 
 
 class PhoBertFeedForward_large(nn.Module):
@@ -34,7 +33,6 @@ class PhoBertFeedForward_large(nn.Module):
         self.bert = RobertaModel(config=phobert_config)
         if from_pretrained:
           self.bert = RobertaModel.from_pretrained("vinai/phobert-large")
-        self.act = nn.LogSoftmax(dim=1)
         self.classifier = nn.Sequential(
             nn.Linear(1024, 1024),
             nn.Dropout(train_config.DROP_OUT),
@@ -48,7 +46,7 @@ class PhoBertFeedForward_large(nn.Module):
         bert_feature = self.bert(input_ids=input_ids, attention_mask=attn_mask)
         last_hidden_cls = bert_feature[0][:, 0, :]
         logits = self.classifier(last_hidden_cls)
-        return self.act(logits)
+        return logits
 
 
 class PhoBERTLSTM_base(nn.Module):
@@ -74,7 +72,6 @@ class PhoBERTLSTM_base(nn.Module):
     out, (h, c) = self.lstm(out)
     hidden = torch.cat((h[0], h[1]), dim = 1)
     out = self.linear(self.dropout(hidden))
-    out = self.act(out)
     return out
 
 class PhoBERTLSTM_large(nn.Module):
@@ -90,7 +87,6 @@ class PhoBERTLSTM_large(nn.Module):
                         batch_first=True, bidirectional=True, num_layers=1)
     self.dropout = nn.Dropout(train_config.DROP_OUT)
     self.linear = nn.Linear(1024 * 2, train_config.NUM_CLASSES)
-    self.act = nn.LogSoftmax(dim=1)
 
     if freeze_backbone:
       for param in self.bert.parameters():
@@ -101,5 +97,4 @@ class PhoBERTLSTM_large(nn.Module):
     out, (h, c) = self.lstm(out)
     hidden = torch.cat((h[0], h[1]), dim = 1)
     out = self.linear(self.dropout(hidden))
-    out = self.act(out)
     return out

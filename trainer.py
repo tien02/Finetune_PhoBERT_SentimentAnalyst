@@ -26,8 +26,9 @@ class PhoBERTModel(LightningModule):
         input_ids, attn_mask, label = batch
 
         logits = self.model(input_ids, attn_mask)
+        pred = torch.nn.functional.log_softmax(logits, dim=1)
 
-        loss = self.loss_fn(logits, label)
+        loss = self.loss_fn(pred, label)
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
         return loss
 
@@ -35,13 +36,14 @@ class PhoBERTModel(LightningModule):
         input_ids, attn_mask, label = batch
 
         logits = self.model(input_ids, attn_mask)
+        pred = torch.nn.functional.log_softmax(logits, dim=1)
 
-        loss = self.loss_fn(logits, label)
+        loss = self.loss_fn(pred, label)
 
-        acc = self.acc(logits, label)
-        pre = self.precision_fn(logits, label)
-        re = self.recall_fn(logits, label)
-        f1 = self.f1(logits, label)
+        acc = self.acc(pred, label)
+        pre = self.precision_fn(pred, label)
+        re = self.recall_fn(pred, label)
+        f1 = self.f1(pred, label)
         
         self.log_dict({
             "test_loss": loss,
@@ -56,8 +58,9 @@ class PhoBERTModel(LightningModule):
         input_ids, attn_mask, label = batch
     
         logits = self.model(input_ids, attn_mask)
-        loss = self.loss_fn(logits, label)
-        acc = self.acc(logits, label)
+        pred = torch.nn.functional.log_softmax(logits, dim=1)
+        loss = self.loss_fn(pred, label)
+        acc = self.acc(pred, label)
 
         self.log_dict({
             "val_loss": loss,
