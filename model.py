@@ -13,7 +13,7 @@ class PhoBertFeedForward_base(nn.Module):
         self.act = nn.LogSoftmax(dim=1)
         self.classifier = nn.Sequential(
             nn.Linear(768, 768),
-            nn.Dropout(0.4),
+            nn.Dropout(train_config.DROP_OUT),
             nn.Linear(768, train_config.NUM_CLASSES))
         
         if freeze_backbone:
@@ -37,7 +37,7 @@ class PhoBertFeedForward_large(nn.Module):
         self.act = nn.LogSoftmax(dim=1)
         self.classifier = nn.Sequential(
             nn.Linear(1024, 1024),
-            nn.Dropout(0.4),
+            nn.Dropout(train_config.DROP_OUT),
             nn.Linear(1024, train_config.NUM_CLASSES))
         
         if freeze_backbone:
@@ -61,7 +61,7 @@ class PhoBERTLSTM_base(nn.Module):
 
     self.lstm = nn.LSTM(input_size=768, hidden_size=768, 
                         batch_first=True, bidirectional=True, num_layers=1)
-    self.dropout = nn.Dropout(0.4)
+    self.dropout = nn.Dropout(train_config.DROP_OUT)
     self.linear = nn.Linear(768 * 2, train_config.NUM_CLASSES)
     self.act = nn.LogSoftmax(dim=1)
 
@@ -88,7 +88,7 @@ class PhoBERTLSTM_large(nn.Module):
     self.lstm = nn.LSTM(input_size=1024, 
                         hidden_size=1024, 
                         batch_first=True, bidirectional=True, num_layers=1)
-    self.dropout = nn.Dropout(0.4)
+    self.dropout = nn.Dropout(train_config.DROP_OUT)
     self.linear = nn.Linear(1024 * 2, train_config.NUM_CLASSES)
     self.act = nn.LogSoftmax(dim=1)
 

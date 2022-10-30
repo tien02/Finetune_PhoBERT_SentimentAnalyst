@@ -1,38 +1,43 @@
+from logging import root
 import config.train_config as train_config
 import torch
-from dataset import eval_dataloader, test_dataloader
+from torch.utils.data import DataLoader
+from dataset import tokenizer, UIT_VFSC_Dataset, collate_fn
 from pytorch_lightning import Trainer, seed_everything
 from model import PhoBERTLSTM_base, PhoBERTLSTM_large, PhoBertFeedForward_base, PhoBertFeedForward_large
 from trainer import PhoBERTModel
 from termcolor import colored
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if train_config.MODEL == "FeedForward-base":
-    model = PhoBertFeedForward_base(from_pretrained=False)
-    print(colored("\nEvaluate PhoBERT FeedForward base\n", "green"))
-elif train_config.MODEL == "FeedForward-large":
-    model = PhoBertFeedForward_large(from_pretrained=False)
-    print(colored("\nEvaluate PhoBERT FeedForward large\n", "green"))
-elif train_config.MODEL == "LSTM-base":
-    model = PhoBERTLSTM_base(from_pretrained=False)
-    print(colored("\nEvaluate PhoBERT LSTM base\n", "green"))
-else:
-    model = PhoBERTLSTM_large(from_pretrained=False)
-    print(colored("\nEvaluate PhoBERT LSTM large\n", "green"))
-system = PhoBERTModel(model)
-system.to(device)
-checkpoint = torch.load(train_config.CKPT_PATH)
-system.load_state_dict(checkpoint["state_dict"])
-system.eval()
-system.freeze()
+def load_model():
+    if train_config.MODEL == "FeedForward-base":
+        model = PhoBertFeedForward_base(from_pretrained=False)
+        print(colored("\nEvaluate PhoBERT FeedForward base\n", "green"))
+    elif train_config.MODEL == "FeedForward-large":
+        model = PhoBertFeedForward_large(from_pretrained=False)
+        print(colored("\nEvaluate PhoBERT FeedForward large\n", "green"))
+    elif train_config.MODEL == "LSTM-base":
+        model = PhoBERTLSTM_base(from_pretrained=False)
+        print(colored("\nEvaluate PhoBERT LSTM base\n", "green"))
+    else:
+        model = PhoBERTLSTM_large(from_pretrained=False)
+        print(colored("\nEvaluate PhoBERT LSTM large\n", "green"))
+    system = PhoBERTModel(model)
+    return system
 
 if __name__ == "__main__":
-    seed_everything(69)
+    seed_everything(train_config.SEED)
 
-    trainer = Trainer(accelerator='gpu')
+    system = load_model()
 
-    print("\nEvaluate on Validation Set:\n")
-    trainer.validate(model=system, ckpt_path=train_config.CKPT_PATH, dataloaders=eval_dataloader)
+    test_data = UIT_VFSC_Dataset(root_dir=train_config.TEST_PATH,
+                                label=train_config.LABEL)
+    test_dataloader = DataLoader(dataset=test_data, 
+                                batch_size=train_config.BATCH_SIZE,
+                                collate_fn=collate_fn,
+                                shuffle=False,
+                                num_workers=train_config.NUM_WORKERS)
 
-    print("\nEvaluate on Test Set:\n")
-    trainer.test(model=system, ckpt_path=train_config.CKPT_PATH, dataloaders=test_dataloader)
+    trainer = Trainer(accelerator=train_config.ACCELERATOR)
+
+    print(colored("\nEvaluate on Test Set:\n", "green"))
+    trainer.test(model=system, ckpt_path=train_config.TEST_CKPT_PATH, dataloaders=test_dataloader)
