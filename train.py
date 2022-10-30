@@ -11,8 +11,8 @@ from termcolor import colored
 def main():
         seed_everything(train_config.SEED)
 
-        train_data = UIT_VFSC_Dataset(root_dir=train_config.TRAIN_PATH)
-        eval_data = UIT_VFSC_Dataset(root_dir=train_config.VALIDATION_PATH)
+        train_data = UIT_VFSC_Dataset(root_dir=train_config.TRAIN_PATH, label=train_config.LABEL)
+        eval_data = UIT_VFSC_Dataset(root_dir=train_config.VALIDATION_PATH, label=train_config.LABEL)
 
         train_dataloader = DataLoader(dataset=train_data, collate_fn=collate_fn, batch_size=train_config.BATCH_SIZE, num_workers=train_config.NUM_WORKERS)
         eval_dataloader = DataLoader(dataset=eval_data, collate_fn=collate_fn, batch_size=train_config.BATCH_SIZE, num_workers=train_config.NUM_WORKERS)

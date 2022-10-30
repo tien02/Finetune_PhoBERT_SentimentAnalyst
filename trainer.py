@@ -65,7 +65,7 @@ class PhoBERTModel(LightningModule):
         }, on_epoch=True, prog_bar=True)
 
     def configure_optimizers(self):
-        optimizer = Adam(self.model.parameters(), lr=1e-4, eps=1e-6, weight_decay=0.01)
+        optimizer = Adam(self.model.parameters(), lr=train_config.LEARNING_RATE, eps=1e-6, weight_decay=0.01)
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=train_config.LEARNING_RATE,
                     steps_per_epoch=len(dataset), epochs=train_config.EPOCHS)
         return {
